@@ -1,0 +1,61 @@
+---
+image: python:3.9-slim
+
+stages:
+  - tasks
+
+services:
+  - name: postgres:15-alpine
+    alias: postgres
+
+variables:
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: password
+  POSTGRES_HOST_AUTH_METHOD: trust
+
+  DBNAME: postgres
+  DBHOST: postgres
+  DBPORT: 5432
+  DBUSER: postgres
+  DBPASSWORD: password
+
+  SCRIPTS_DIR: ./scripts
+  SMART_SCRIPTS_DIR: ${SCRIPTS_DIR}/smart_scripts
+  TESTS_DIR: ./tests
+  UTILS_DIR: ./utils
+  ANALYSIS_DIR: ./analysis
+  ANALYSIS: ${ANALYSIS_DIR}/analysis.py
+  PYPSQL: ${UTILS_DIR}/pypsql.py
+
+  NO_COLOUR: '\033[0m'
+  LIGHT_YEELOW: '\033[1;33m'
+  LIGHT_RED: '\033[1;31m'
+
+.setup:
+  before_script:
+    - pip install -r ./requirements.txt > /dev/null 2> /dev/null
+
+tasks from 3rd to 11th:
+  stage: tasks
+  extends:
+    - .setup
+  script:
+    - echo -e "${LIGHT_YEELOW}>>> Task №3 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/ddl_scripts.sql" --cat
+    - echo -e "${LIGHT_YEELOW}>>> Task №7 <<<${NO_COLOUR}"
+    - SCRIPTS_FOLDER_PATH="${SMART_SCRIPTS_DIR}" pytest ${TESTS_DIR}/smart_scripts_test.py
+    - echo -e "${LIGHT_YEELOW}>>> Task №12 <<<${NO_COLOUR}"
+    - python3 ${ANALYSIS}
+    - python3 ${PYPSQL} --tables="st"
+    # - echo "Table 'cd.members' contains rows:"
+    # - python3 ${PYPSQL} --sql="SELECT * FROM cd.members" --verbose
+    # - echo "Table 'cd.bookings' contains rows:"
+    # - python3 ${PYPSQL} --sql="SELECT * FROM cd.bookings" --verbose
+
+    # - echo -e "${LIGHT_YEELOW}>>> Task №6-7 <<<${NO_COLOUR}"
+    # - SCRIPT_PATH="${SCRIPTS_DIR}/select_count_tables.sql" pytest ${TESTS_DIR}/test_select_count.py
+
+    # - echo -e "${LIGHT_YEELOW}>>> Task №9 <<<${NO_COLOUR}"
+
+    # - echo -e "${LIGHT_YEELOW}>>> Task №10 <<<${NO_COLOUR}"
